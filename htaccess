@@ -1,0 +1,64 @@
+# Disable directory browsing
+Options -Indexes
+# Restrict access to specific file types
+<FilesMatch "^(db_config\.php|database\.db|\.htaccess)">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# <FilesMatch "\.js$">
+#   Order deny,allow
+#   Deny from all
+# </FilesMatch>
+RewriteEngine On
+#RewriteCond %{HTTP_REFERER} !^$
+#RewriteCond %{HTTP_REFERER} !^http(s)?://(www\.)?rentalorb\.com [NC]
+#RewriteRule \.(jpg|jpeg|png|gif)$ - [NC,F,L]
+
+#RewriteCond %{HTTPS} off
+#RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+ErrorDocument 404 /404.php
+ErrorDocument 403 /403.php
+ErrorDocument 500 /500.php
+
+# URL Structure Design
+RewriteBase /
+
+# Redirect /profile.php?user=username to /@username
+RewriteCond %{THE_REQUEST} \s/profile\.php\?user=([^\s&]+) [NC]
+RewriteRule ^ /@%1? [R=301,L]
+
+# Rewrite /@username to /profile.php?user=username
+RewriteRule ^@([^/]+)/?$ profile.php?user=$1 [L,QSA,NC]
+
+# Redirect from /page.php to /page
+RewriteCond %{THE_REQUEST} ^[A-Z]{3,}\s/+(.+)\.php [NC]
+RewriteRule ^ /%1 [R=301,L]
+
+# Rewrite from /page to /page.php
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}.php -f
+RewriteRule ^(.+)$ $1.php [L]
+
+# Rewrite rentals/area/Gazipur-Sadar/category/Family to rentals.php?area=Gazipur-Sadar&category=Family
+RewriteRule ^rentals/area/([^/]+)/category/([^/]+)$ rentals.php?area=$1&category=$2 [L]
+
+# Redirect rentals.php?area=Gazipur-Sadar&category=Family to rentals/area/Gazipur-Sadar/category/Family
+RewriteCond %{QUERY_STRING} ^area=([^&]+)&category=([^&]+)$
+RewriteRule ^rentals\.php$ /rentals/area/%1/category/%2? [R=301,L]
+
+# Rewrite rentals/category/Family to rentals.php?category=Family
+RewriteRule ^rentals/category/([^/]+)$ rentals.php?category=$1 [L]
+
+# Redirect rentals.php?category=Family to rentals/category/Family
+RewriteCond %{QUERY_STRING} ^category=([^&]+)$
+RewriteRule ^rentals\.php$ /rentals/category/%1? [R=301,L]
+
+# Redirect from old URL to new URL structure
+RewriteCond %{QUERY_STRING} ^ads=([^&]+)$
+RewriteRule ^adsDetails$ /property/details/%1? [R=301,L]
+
+# Ensure the new URL is handled correctly by the application
+RewriteRule ^property/details/([^/]+)$ adsDetails.php?ads=$1 [L,QSA]
+
